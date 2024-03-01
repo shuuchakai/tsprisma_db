@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model catalogo_bandera {
+  id_bandera Int       @id
+  bandera    String    @db.VarChar(20)
+  usuario    usuario[]
+}
+
+model catalogo_enfermedad {
+  id_enfermedad       Int                   @id
+  enfermedad          String                @db.VarChar(200)
+  enfermedad_paciente enfermedad_paciente[]
+}
+
+model catalogo_estado_solicitud {
+  id_estado_solicitud Int         @id
+  estado_solicitud    String      @db.VarChar(20)
+  solicitud           solicitud[]
+}
+
+model catalogo_genero {
+  id_genero Int       @id
+  genero    String    @db.VarChar(20)
+  usuario   usuario[]
+}
+
+model catalogo_institucion {
+  id_institucion      Int                   @id
+  institucion         String                @db.VarChar(50)
+  datos_profesionales datos_profesionales[]
+}
+
+model catalogo_medicamento {
+  id_medicamento     Int           @id
+  nombre_medicamento String        @db.VarChar(100)
+  tratamiento        tratamiento[]
+}
+
+model catalogo_presentacion_medicamento {
+  id_presentacion_medicamento Int           @id
+  presentacion_medicamento    String        @db.VarChar(50)
+  tratamiento                 tratamiento[]
+}
+
+model catalogo_tipo_usuario {
+  id_tipo_usuario  Int                @id
+  tipo_usuario     String             @db.VarChar(20)
+  solicitud        solicitud[]
+  solicitud_empleo solicitud_empleo[]
+  usuario          usuario[]
+}
+
+model catalogo_titulo {
+  id_titulo           Int                   @id
+  titulo              String                @db.VarChar(50)
+  datos_profesionales datos_profesionales[]
+}
+
+model catalogo_unidad {
+  id_unidad   Int           @id
+  unidad      String        @db.VarChar(50)
+  tratamiento tratamiento[]
+}
+
+model datos_profesionales {
+  id_trabajador  Int                  @id @unique
+  cedula         String               @db.VarChar(10)
+  id_titulo      Int
+  id_institucion Int
+  trabajador     trabajador           @relation(fields: [id_trabajador], references: [id_trabajador])
+  titulo         catalogo_titulo      @relation(fields: [id_titulo], references: [id_titulo])
+  institucion    catalogo_institucion @relation(fields: [id_institucion], references: [id_institucion])
+}
+
+model datos_profesionales_solicitud {
+  id_datos_profesionales_solicitud Int                   @id
+  id_solicitud_empleo              Int
+  cedula                           String                @db.VarChar(10)
+  id_institucion                   Int
+  id_titulo                        Int
+  solicitud_empleo                 solicitud_empleo      @relation(fields: [id_solicitud_empleo], references: [id_solicitud_empleo])
+  institucion                      institucion_solicitud @relation(fields: [id_institucion], references: [id_institucion])
+  titulo                           titulo_solicitud      @relation(fields: [id_titulo], references: [id_titulo])
+}
+
+model enfermedad_paciente {
+  id_paciente   Int                 @id
+  id_enfermedad Int
+  paciente      paciente            @relation(fields: [id_paciente], references: [id_paciente])
+  enfermedad    catalogo_enfermedad @relation(fields: [id_enfermedad], references: [id_enfermedad])
+}
+
+model horario_solicitud_trabajador {
+  id_horario          Int              @id
+  id_solicitud_empleo Int
+  dia_semana          String           @db.VarChar(10)
+  trabaja             Boolean
+  hora_inicio         DateTime
+  hora_fin            DateTime
+  solicitud_empleo    solicitud_empleo @relation(fields: [id_solicitud_empleo], references: [id_solicitud_empleo])
+}
+
+model horario_trabajador {
+  id_horario    Int        @id
+  id_trabajador Int
+  dia_semana    String     @db.VarChar(10)
+  trabaja       Boolean
+  hora_inicio   DateTime
+  hora_fin      DateTime
+  trabajador    trabajador @relation(fields: [id_trabajador], references: [id_trabajador])
+}
+
+model institucion_solicitud {
+  id_institucion                Int                             @id
+  institucion                   String                          @db.VarChar(50)
+  datos_profesionales_solicitud datos_profesionales_solicitud[]
+}
+
+model paciente {
+  id_paciente         Int                   @id
+  fecha_ingreso       DateTime
+  usuario             usuario               @relation(fields: [id_paciente], references: [id_usuario])
+  enfermedad_paciente enfermedad_paciente[]
+  servicio_contratado servicio_contratado[]
+  solicitud           solicitud[]
+  tratamiento         tratamiento[]
+}
+
+model servicio_contratado {
+  id_registro           Int        @id
+  id_paciente           Int
+  id_trabajador         Int
+  duracion              Int
+  costo_total           String     @db.VarChar(10)
+  fecha_inicio_servicio DateTime
+  fecha_final_servicio  DateTime
+  paciente              paciente   @relation(fields: [id_paciente], references: [id_paciente])
+  trabajador            trabajador @relation(fields: [id_trabajador], references: [id_trabajador])
+}
+
+model solicitud {
+  id_solicitud                  Int                       @id
+  id_solicitante                Int
+  id_tipo_trabajador_solicitado Int
+  sueldo_ofrecido               String                    @db.VarChar(10)
+  id_estado_solicitud           Int
+  duracion                      Int
+  fecha_inicio_servicio         DateTime
+  fecha_final_servicio          DateTime
+  paciente                      paciente                  @relation(fields: [id_solicitante], references: [id_paciente])
+  tipo_usuario                  catalogo_tipo_usuario     @relation(fields: [id_tipo_trabajador_solicitado], references: [id_tipo_usuario])
+  estado_solicitud              catalogo_estado_solicitud @relation(fields: [id_estado_solicitud], references: [id_estado_solicitud])
+}
+
+model solicitud_empleo {
+  id_solicitud_empleo           Int                             @id @unique
+  id_puesto_solicitado          Int
+  nombre                        String                          @db.VarChar(100)
+  apellido_paterno              String                          @db.VarChar(100)
+  apellido_materno              String                          @db.VarChar(100)
+  correo_electronico            String                          @db.VarChar(300)
+  telefono                      String                          @db.VarChar(10)
+  ine                           String
+  curp                          String
+  acta_nacimiento               String
+  fecha_nacimiento              DateTime
+  direccion                     String
+  fotografia                    String
+  referencias_personales        String?
+  experiencias_previas          String?
+  ultimo_trabajo                String?
+  salario_hora                  String                          @db.VarChar(10)
+  tipo_usuario                  catalogo_tipo_usuario           @relation(fields: [id_puesto_solicitado], references: [id_tipo_usuario])
+  datos_profesionales_solicitud datos_profesionales_solicitud[]
+  horario_solicitud_trabajador  horario_solicitud_trabajador[]
+}
+
+model titulo_solicitud {
+  id_titulo                     Int                             @id
+  titulo                        String                          @db.VarChar(50)
+  datos_profesionales_solicitud datos_profesionales_solicitud[]
+}
+
+model trabajador {
+  id_trabajador       Int                   @id
+  fecha_contratacion  DateTime
+  correo_electronico  String                @db.VarChar(300)
+  salario_hora        String                @db.VarChar(10)
+  usuario             usuario               @relation(fields: [id_trabajador], references: [id_usuario])
+  datos_profesionales datos_profesionales[]
+  horario_trabajador  horario_trabajador[]
+  servicio_contratado servicio_contratado[]
+}
+
+model tratamiento {
+  id_paciente                 Int                               @id
+  id_medicamento              Int
+  id_presentacion_medicamento Int
+  id_unidad                   Int
+  cantidad_suministrada       String                            @db.VarChar(10)
+  inicio_tratamiento          DateTime
+  duracion                    Int
+  periodicidad                Int
+  paciente                    paciente                          @relation(fields: [id_paciente], references: [id_paciente])
+  medicamento                 catalogo_medicamento              @relation(fields: [id_medicamento], references: [id_medicamento])
+  presentacion_medicamento    catalogo_presentacion_medicamento @relation(fields: [id_presentacion_medicamento], references: [id_presentacion_medicamento])
+  unidad                      catalogo_unidad                   @relation(fields: [id_unidad], references: [id_unidad])
+}
+
+model usuario {
+  id_usuario       Int                   @id
+  nombre           String                @db.VarChar(100)
+  apellido_paterno String                @db.VarChar(100)
+  apellido_materno String                @db.VarChar(100)
+  telefono         String                @db.VarChar(10)
+  direccion        String                @db.VarChar(100)
+  fecha_nacimiento DateTime
+  foto             String
+  id_tipo_usuario  Int
+  id_bandera       Int
+  id_genero        Int
+  tipo_usuario     catalogo_tipo_usuario @relation(fields: [id_tipo_usuario], references: [id_tipo_usuario])
+  bandera          catalogo_bandera      @relation(fields: [id_bandera], references: [id_bandera])
+  genero           catalogo_genero       @relation(fields: [id_genero], references: [id_genero])
+  paciente         paciente[]
+  trabajador       trabajador[]
+}
